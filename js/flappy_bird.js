@@ -131,8 +131,7 @@ SceneTitle.prototype = {
         this.startButton = this.add.image(0, 0, 'assets', 'start_button').setOrigin(0, 0);
         this.startButton.setInteractive().on('pointerdown', this.onStart, this);
         this.scoreButton = this.add.image(0, 0, 'assets', 'score_button');
-        this.interface.add(this.startButton);
-        this.interface.add(this.scoreButton);
+        this.interface.addMultiple([this.startButton, this.scoreButton]);
         Phaser.Actions.GridAlign(this.interface.getChildren(), {
             x: 144 - this.startButton.width / 2,
             y: 350,
@@ -264,10 +263,16 @@ SceneGame.prototype = {
         var scoreboard = this.add.image(144, 0, 'assets', 'scoreboard').setOrigin(.5, 0);
         scoreboard.depth = 2;
         container.add(scoreboard);
-        //this.groundCollider.active = false;
-        //this.input.enabled = false;
-        //this.input.keyboard.enabled = false;
-        scoreGroup = this.add.group();
+        this.drawGameOverScore(container);
+        this.drawGameOverMedal(container);
+        this.tweens.add( { targets: container, delay: 350, y: 180, duration: 300 } );
+        this.time.addEvent({
+            delay: 700,
+            callback: this.createButtonsGameOver,
+            callbackScope: this
+        });
+    },
+    drawGameOverScore: function(container) {
         var length = this.stage.score.toString().length
         for (var i = 0; i < length; i++) {
             var n = this.stage.score.toString()[i];
@@ -276,6 +281,8 @@ SceneGame.prototype = {
             sprite.setFrame(n);
             container.add(sprite);
         }
+    },
+    drawGameOverMedal: function(container) {
         if (this.stage.score >= 10) {
             var sprite = this.add.image(78, 65, 'medals');
             if (this.stage.score >= 40) {
@@ -289,20 +296,13 @@ SceneGame.prototype = {
             }
             container.add(sprite);
         }
-        this.tweens.add( { targets: container, delay: 350, y: 180, duration: 300 } );
-        this.time.addEvent({
-            delay: 700,
-            callback: this.createButtonsOver,
-            callbackScope: this
-        });
     },
-    createButtonsOver: function() {
+    createButtonsGameOver: function() {
         this.okButton = this.add.image(0, 0, 'assets', 'ok_button').setOrigin(0, 0);
-        this.okButton.setInteractive().on('pointerdown', this.onOk, this);
+        this.okButton.setInteractive().on('pointerdown', this.onGameOverOk, this);
         this.scoreButton = this.add.image(0, 0, 'assets', 'score_button');
         var group = this.add.group();
-        group.add(this.okButton);
-        group.add(this.scoreButton);
+        group.addMultiple([this.okButton, this.scoreButton]);
         Phaser.Actions.GridAlign(group.getChildren(), {
             x: 144 - this.okButton.width / 2,
             y: 350,
@@ -312,7 +312,7 @@ SceneGame.prototype = {
             cellHeight: 28,
         });
     },
-    onOk: function() {
+    onGameOverOk: function() {
         this.okButton.y += 2
         this.cameras.main.fadeOut(300);
         this.cameras.main.once('camerafadeoutcomplete', function() { this.scene.start("Title"); }, this);
@@ -501,6 +501,3 @@ Stage.prototype.refreshScore =  function() {
 Stage.prototype.addPipes =  function(pipe) {
     this.pipes.push(pipe);
 };
-
-var Social = new Phaser.Class({});
-var SocialButton = new Phaser.Class({});
